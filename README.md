@@ -1,2 +1,2 @@
-# A simple social network app
+# A social network app
 work in progress...
