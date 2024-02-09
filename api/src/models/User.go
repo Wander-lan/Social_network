@@ -4,6 +4,8 @@ import (
 	"errors"
 	"strings"
 	"time"
+
+	"github.com/badoux/checkmail"
 )
 
 type User struct {
@@ -28,12 +30,19 @@ func (user *User) validate(operationType string) error {
 	if user.Name == "" {
 		return errors.New("Name is mandatory")
 	}
+
 	if user.Nick == "" {
 		return errors.New("Nick is mandatory")
 	}
+
 	if user.Email == "" {
 		return errors.New("Email is mandatory")
 	}
+
+	if err := checkmail.ValidateFormat(user.Email); err != nil {
+		return errors.New("The given email is invalid")
+	}
+
 	if operationType == "create" && user.Password == "" {
 		return errors.New("Password is mandatory")
 	}
