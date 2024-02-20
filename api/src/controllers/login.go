@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"api/src/authentication"
 	"api/src/database"
 	"api/src/models"
 	"api/src/repositories"
@@ -43,4 +44,13 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		responses.Error(w, http.StatusUnauthorized, err)
 		return
 	}
+
+	token, err := authentication.CreateToken(userOnDatabase.ID)
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	w.Write([]byte(token))
+
 }
