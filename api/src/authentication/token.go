@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	jwt "github.com/dgrijalva/jwt-go"
 )
 
 // Returns a signed token with user's permissions
