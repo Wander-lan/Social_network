@@ -193,7 +193,7 @@ func (repository Users) Unfollow(userId, followerId uint64) error {
 // Finds all followers of a user
 func (repository Users) SearchFollowers(userId uint64) ([]models.User, error) {
 	rows, err := repository.db.Query(`
-		SELECT u.id, u.name, u.email, u.createdAt
+		SELECT u.id, u.name, u.nick, u.email, u.createdAt
 		FROM users u INNER JOIN followers s
 		ON u.id = s.follower_id WHERE s.user_id = ?
 		`, userId)
@@ -220,4 +220,70 @@ func (repository Users) SearchFollowers(userId uint64) ([]models.User, error) {
 	}
 
 	return users, nil
+}
+
+// Find who is being followed by a user
+func (repository Users) SearchFollowing(userId uint64) ([]models.User, error) {
+	rows, err := repository.db.Query(`
+		SELECT u.id, u.name, u.nick, u.email, u.createdAt
+		FROM users u INNER JOIN followers s
+		ON u.id = s.user_id WHERE s.follower_id = ?
+		`, userId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []models.User
+
+	for rows.Next() {
+		var user models.User
+
+		if err = rows.Scan(
+			&user.ID,
+			&user.Name,
+			&user.Nick,
+			&user.Email,
+			&user.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
+// finds the password of a user by ID
+func (repository Users) SearchPassword(userId uint64) (string, error) {
+	rows, err := repository.db.Query("SELECT password FROM users WHERE id = ?", userId)
+	if err != nil {
+		return "", err
+	}
+	defer rows.Close()
+
+	var user models.User
+
+	if rows.Next() {
+		if err = rows.Scan(&user.Password); err != nil {
+			return "", err
+		}
+	}
+
+	return user.Password, nil
+}
+
+func (repository Users) UpdatePassword(userId uint64, password string) error {
+	statement, err := repository.db.Prepare("UPDATE users SET password = ? WHERE id = ?")
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	if _, err = statement.Exec(password, userId); err != nil {
+		return err
+	}
+
+	return nil
 }
