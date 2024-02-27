@@ -37,3 +37,35 @@ func (repository Posts) Create(post models.Post) (uint64, error) {
 
 	return uint64(lastIdInserted), nil
 }
+
+// Searches for a single post on database
+func (repository Posts) SearchById(postId uint64) (models.Post, error) {
+	rows, err := repository.db.Query(`
+		SELECT p.*, u.nick
+		FROM posts p INNER JOIN users u
+		ON u.id = p.author_id WHERE p.id = ?`,
+		postId,
+	)
+	if err != nil {
+		return models.Post{}, err
+	}
+	defer rows.Close()
+
+	var post models.Post
+
+	for rows.Next() {
+		if err = rows.Scan(
+			&post.ID,
+			&post.Title,
+			&post.Content,
+			&post.AuthorID,
+			&post.Likes,
+			&post.CreatedAt,
+			&post.AuthorNick,
+		); err != nil {
+			return models.Post{}, err
+		}
+	}
+
+	return post, nil
+}

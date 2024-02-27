@@ -9,6 +9,9 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 // Add a new post on database
@@ -62,7 +65,28 @@ func SearchPosts(w http.ResponseWriter, r *http.Request) {
 
 // Searches for a single post
 func SearchPost(w http.ResponseWriter, r *http.Request) {
+	parameters := mux.Vars(r)
+	postId, err := strconv.ParseUint(parameters["postId"], 10, 64)
+	if err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
 
+	db, err := database.Connect()
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repositories.NewPostRepository(db)
+	post, err := repository.SearchById(postId)
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	responses.JSON(w, http.StatusOK, post)
 }
 
 // Update a post
