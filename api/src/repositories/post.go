@@ -69,3 +69,41 @@ func (repository Posts) SearchById(postId uint64) (models.Post, error) {
 
 	return post, nil
 }
+
+// Searches for all posts a from a user and from the users followed by him
+func (repository Posts) Search(userId uint64) ([]models.Post, error) {
+	rows, err := repository.db.Query(`
+		SELECT DISTINCT p.*, u.nick FROM posts p
+		INNER JOIN users u on u.id = p.author_id
+		INNER JOIN followers s on p.author_id = s.user_id
+		WHERE u.id = ? or s.follower_id = ?`,
+		userId, userId,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var posts []models.Post
+
+	for rows.Next() {
+		var post models.Post
+
+		if err = rows.Scan(
+			&post.ID,
+			&post.Title,
+			&post.Content,
+			&post.AuthorID,
+			&post.Likes,
+			&post.CreatedAt,
+			&post.AuthorNick,
+		); err != nil {
+			return nil, err
+		}
+
+		posts = append(posts, post)
+	}
+
+	return posts, nil
+
+}
