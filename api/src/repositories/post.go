@@ -107,3 +107,20 @@ func (repository Posts) Search(userId uint64) ([]models.Post, error) {
 	return posts, nil
 
 }
+
+// Update the info about a post on database
+func (repository Posts) Update(postId uint64, post models.Post) error {
+	statement, err := repository.db.Prepare(
+		"UPDATE posts SET title = ?, content = ? WHERE id = ?",
+	)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	if _, err = statement.Exec(post.Title, post.Content, post.ID); err != nil {
+		return err
+	}
+
+	return nil
+}
