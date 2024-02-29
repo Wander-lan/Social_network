@@ -140,6 +140,7 @@ func (repository Posts) Delete(postId uint64) error {
 	return nil
 }
 
+// Searches for all posts from a user on database
 func (repository Posts) SearchByUser(userId uint64) ([]models.Post, error) {
 	rows, err := repository.db.Query(`
 		SELECT p.*, u.nick FROM posts p
@@ -173,4 +174,19 @@ func (repository Posts) SearchByUser(userId uint64) ([]models.Post, error) {
 	}
 
 	return posts, nil
+}
+
+// Adds a like on a post on database
+func (repository Posts) Like(postId uint64) error {
+	statement, err := repository.db.Prepare("UPDATE posts SET likes = likes + 1 WHERE id = ?")
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	if _, err = statement.Exec(postId); err != nil {
+		return err
+	}
+
+	return nil
 }
