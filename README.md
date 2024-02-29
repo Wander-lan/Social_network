@@ -1,4 +1,4 @@
-# A social network app with an API
+# A social network app with it's own API
 This is a generic social network application with it's own API and a local database.
 
 # API Routes:
